@@ -6,7 +6,7 @@ import uuid
 from loguru import logger
 
 
-from app.core.context import request_id_ctx_var
+# from app.core.context import request_id_ctx_var
 from conf.app_config import app_config
 
 # 配置日志格式
@@ -30,6 +30,7 @@ def inject_request_id(record):
     try:
         # 尝试从上下文变量中获取当前请求的 request_id
         # 上下文变量适配异步/多请求场景，可保证不同请求的 request_id 互不干扰
+        from app.core.context import request_id_ctx_var
         request_id = request_id_ctx_var.get()
     except Exception as e:
         # 若获取失败（如上下文变量未初始化、无有效值等异常），生成 UUID4 作为兜底的唯一标识
@@ -66,6 +67,7 @@ if app_config.logging.file.enable:
         encoding="utf-8"  # 日志文件编码格式
     )
 if __name__ == '__main__':
+    from app.core.context import request_id_ctx_var
     async def graph(request: str):
         # 获取ID值
         id = request_id_ctx_var.get()

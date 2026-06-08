@@ -3,6 +3,8 @@ name = "data-agent"
 version = "0.1.0"
 requires-python = ">=3.12"
 dependencies = [
+    "argumentparser>=1.2.1",
+    "asyncio",
     "asyncmy>=0.2.11",
     "cryptography>=48.0.0",
     "elasticsearch[async]>=8,<9",
