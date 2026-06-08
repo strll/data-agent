@@ -1,8 +1,7 @@
 from sqlalchemy.ext.asyncio.session import AsyncSession
-from sqlalchemy.sql.expression import text, select
 
-from app.models.column_info_mysql import ColumnInfoMySQL
-from app.models.table_info_mysql import TableInfoMySQL
+from app.models.mysql.column_info_mysql import ColumnInfoMySQL
+from app.models.mysql.table_info_mysql import TableInfoMySQL
 
 
 class MetaMysqlRepository:

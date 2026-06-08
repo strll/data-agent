@@ -35,13 +35,13 @@ class EmbeddingClientManager:
     def _get_url(self):
         return f"http://{self.config.host}:{self.config.port}"
 
-embedding_client_managert=EmbeddingClientManager(app_config.embedding)
+embedding_client_manager=EmbeddingClientManager(app_config.embedding)
 
 if __name__ == '__main__':
-    embedding_client_managert.init()
+    embedding_client_manager.init()
     async def test():
         text="你好 我爱中国"
-        client=embedding_client_managert.client
+        client=embedding_client_manager.client
 
         result=await client.aembed_query( text)
 

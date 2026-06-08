@@ -1,8 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql.expression import text
 
-from app.repossitories.meta_mysql_repository import MetaMysqlRepository
-
 
 class DwMysqlRepository:
     def __init__(self, session: AsyncSession,
