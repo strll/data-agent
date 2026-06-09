@@ -2,7 +2,7 @@ from langgraph.constants import END, START
 from langgraph.graph import StateGraph
 from sqlalchemy.util.concurrency import asyncio
 
-from app.agent.nodes.context import DataAgentContext
+
 from app.agent.state import DataAgentState
 from app.agent.context import DataAgentContext
 
@@ -21,6 +21,7 @@ from app.agent.nodes.validate_sql import validate_sql
 from app.agent.state import DataAgentState
 from app.clients.embedding_client_manager import embedding_client_manager
 from app.clients.qdrant_client_manager import qdrant_client_manager
+from app.repossitories.qdrant.column_qdrant_repository import ColumnQdrantRepository
 
 #构建图
 grap_builder = StateGraph(state_schema=DataAgentState,
@@ -79,13 +80,22 @@ if __name__ == '__main__':
 
     async def test():
 
+        embedding_client_manager.init()
+        qdrant_client_manager.init()
+
+
         state = DataAgentState(query="统计各个地区的销售总额")
 
-        context=DataAgentContext()
+        context=DataAgentContext(
+            embedding_client=embedding_client_manager.client,
+            column_qdrant_repository=ColumnQdrantRepository(qdrant_client_manager.client)
+        )
 
 
         async for chunk in graph.astream(input=state,context=context,stream_mode="custom"):
             print(chunk)
+
+        await qdrant_client_manager.close()
 
 
     asyncio.run(test())
