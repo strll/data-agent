@@ -5,4 +5,5 @@ from app.core.log import logger
 
 # 负责定义生成sql的节点
 async def generate_sql(state:DataAgentState,runtime:Runtime[DataAgentContext]):
-		pass
+		writer=runtime.stream_writer
+		writer({"state":"生成sql信息"})

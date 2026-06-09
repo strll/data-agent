@@ -5,4 +5,5 @@ from app.core.log import logger
 
 # 负责定义召回取值信息的节点
 async def recall_value(state:DataAgentState,runtime:Runtime[DataAgentContext]):
-		pass
+	writer = runtime.stream_writer
+	writer({"state":"正在召回取值信息"})

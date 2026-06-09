@@ -5,4 +5,5 @@ from app.core.log import logger
 
 # 负责定义过滤指标信息的节点
 async def filter_metric(state:DataAgentState,runtime:Runtime[DataAgentContext]):
-		pass
+	writer=runtime.stream_writer
+	writer({"state":"过滤指标信息"})

@@ -8,4 +8,5 @@ from app.core.log import logger
 # 负责定义合并召回信息的节点
 
 async def merge_retrieved_info(state:DataAgentState,runtime:Runtime[DataAgentContext]):
-		pass
+		writer=runtime.stream_writer
+		writer({"state":"合并召回信息"})

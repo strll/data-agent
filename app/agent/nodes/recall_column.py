@@ -5,4 +5,5 @@ from app.core.log import logger
 
 # 负责定义召回字段信息的节点
 async def recall_column(state:DataAgentState,runtime:Runtime[DataAgentContext]):
-		pass
+	writer=runtime.stream_writer
+	writer({"state":"召回字段信息"})
