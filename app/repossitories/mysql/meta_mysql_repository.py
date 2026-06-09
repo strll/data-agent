@@ -1,6 +1,8 @@
 from sqlalchemy.ext.asyncio.session import AsyncSession
 
 from app.models.mysql.column_info_mysql import ColumnInfoMySQL
+from app.models.mysql.column_metric_mysql import ColumnMetricMySQL
+from app.models.mysql.metric_info_mysql import MetricInfoMySQL
 from app.models.mysql.table_info_mysql import TableInfoMySQL
 
 
@@ -17,3 +19,12 @@ class MetaMysqlRepository:
         """保存列元数据：主键冲突则更新，否则新增"""
         for info in column_infos:
             await self.session.merge(info)
+
+    async def save_metric_infos(self, meta_infos:list[MetricInfoMySQL]):
+        for meta_info in meta_infos:
+
+         await   self.session.merge(meta_info)
+
+    async def save_column_metrics(self, column_metrics:list[ColumnMetricMySQL]):
+        for column_metric in column_metrics:
+            await self.session.merge(column_metric)

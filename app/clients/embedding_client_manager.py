@@ -35,6 +35,11 @@ class EmbeddingClientManager:
     def _get_url(self):
         return f"http://{self.config.host}:{self.config.port}"
 
+    async def close(self):
+        """关闭底层的 aiohttp ClientSession，防止资源泄漏"""
+        if self.client and self.client.async_client:
+            await   self.client.async_client.close()
+
 embedding_client_manager=EmbeddingClientManager(app_config.embedding)
 
 if __name__ == '__main__':

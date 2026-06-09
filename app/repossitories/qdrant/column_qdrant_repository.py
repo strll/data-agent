@@ -22,7 +22,7 @@ class ColumnQdrantRepository:
                                                 vectors_config=VectorParams(size=app_config.qdrant.embedding_size,
                                                                             distance=Distance.COSINE)
                                                 )
-        pass
+
 
     async def upsert_embeddings(self, ids: list[str], emdeddings: list[list[float]], paylods: ColumnInfoQdrant,batch_size:int=10  ):
 
@@ -32,14 +32,6 @@ class ColumnQdrantRepository:
         for i in range(0,len(zipped),batch_size):
             batch=zipped[i:i+batch_size]
 
-            # points=[
-            #     {
-            #         "id": id,
-            #         "vector": embedding,
-            #         "payload": payload
-            #     }
-            #     for id, embedding, payload in batch
-            # ]
             points = [PointStruct(
                 id=id,
                 vector=embedding,

@@ -12,6 +12,7 @@ from app.repossitories.es.ValueEsRepository import ValueEsRepository
 from app.repossitories.mysql.dw_mysql_repository import DwMysqlRepository
 from app.repossitories.mysql.meta_mysql_repository import MetaMysqlRepository
 from app.repossitories.qdrant.column_qdrant_repository import ColumnQdrantRepository
+from app.repossitories.qdrant.metric_qdrant_repository import MetricQdrantRepository
 from app.service.meta_konwledge_service import MetaKnowledgeService
 
 
@@ -32,17 +33,23 @@ async def build(file_path: Path):
         column_qdrant_repository = ColumnQdrantRepository(qdrant_client_manager.client)
         value_es_repository = ValueEsRepository(es_client_manager.client)
 
+        meta_qdrant_repository=MetricQdrantRepository(qdrant_client_manager.client)
+
         meta_konwledge_service = MetaKnowledgeService(meta_mysql_repository=meta_mysql_repository,
                                                       dw_mysql_repository=dw_mysql_repository,
                                                       column_qdrant_repository=column_qdrant_repository,
                                                       embedding_client=embedding_client_manager.client,
-                                                      value_es_repository=value_es_repository
+                                                      value_es_repository=value_es_repository,
+                                                      meta_qdrant_repository=meta_qdrant_repository
                                                       )
 
         await meta_konwledge_service.build(file_path)
 
     await meta_mysql_client_manager.close()
     await dw_mysql_client_manager.close()
+    await qdrant_client_manager.close()
+    await es_client_manager.close()
+    await embedding_client_manager.close()
 
 
 if __name__ == '__main__':
