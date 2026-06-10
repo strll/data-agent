@@ -55,3 +55,13 @@ class MetricQdrantRepository:
                 collection_name=self.collection_name,
                 points=points
             )
+
+    async def search(self, embedding:list[float]):
+
+        search_result=await self.client.query_points(
+            collection_name=self.collection_name,
+            query=embedding,
+            score_threshold=0.6
+        )
+
+        return [ point.payload for point in search_result.points]

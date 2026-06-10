@@ -9,7 +9,7 @@ class ValueEsRepository:
         "dynamic": False,
         "properties": {
             "id": {"type": "keyword"},
-            "value": {"type": "text", "analyzer": "ik_max_word", "search_analyzer": "ik_smart"},
+            "value": {"type": "text", "analyzer": "ik_max_word", "search_analyzer": "ik_max_word"},
             "type": {"type": "keyword"},
             "column_id": {"type": "keyword"},
             "column_name": {"type": "keyword"},
@@ -59,4 +59,19 @@ class ValueEsRepository:
             await self.client.bulk(
                 operations=operations,
             )
+
+
+    async def search(self, keyword:str)->list[ValueInfoEs]:
+
+
+        resp = await  self.client.search(
+            index=self.es_index_name,
+            query={
+                "match": {
+                    "value": keyword
+                }
+            },
+        )
+        # 返回结果
+        return [result['_source'] for result in resp['hits']['hits']]
 
