@@ -58,6 +58,10 @@ async def recall_metric(state:DataAgentState,runtime:Runtime[DataAgentContext]):
 			retrieved_columns = list(retrieved_metric_map.values())
 			logger.info(f"召回指标成功{[retrieved_metric_map.keys()]}")
 
+			if not retrieved_metric_map:
+				#使用lambda表达式遍历keywords 然后拼成一个字符串
+				keywords_str = " ".join(map(lambda x: x, keywords))
+				writer({"state": f"召回指标值为空 召回使用的分词是{keywords_str  }"})
 
 			return {"retrieved_metrics": retrieved_columns}
 

@@ -15,7 +15,7 @@ class MysqlClientManager:
         self.engine:Optional[AsyncEngine]= None
 
     def _get_url(self):
-        return (f"mysql+aiomysql://{self.config.user}:{self.config.password}"
+        return (f"mysql+asyncmy://{self.config.user}:{self.config.password}"
                 f"@{self.config.host}:{self.config.port}/"
                 f"{self.config.database}")
 

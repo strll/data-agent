@@ -2,7 +2,7 @@ from langgraph.constants import END, START
 from langgraph.graph import StateGraph
 from sqlalchemy.util.concurrency import asyncio
 
-
+from app.agent.nodes.result_formatter import result_formatter
 from app.agent.state import DataAgentState
 from app.agent.context import DataAgentContext
 
@@ -29,57 +29,82 @@ from app.repossitories.mysql.meta_mysql_repository import MetaMysqlRepository
 from app.repossitories.qdrant.column_qdrant_repository import ColumnQdrantRepository
 from app.repossitories.qdrant.metric_qdrant_repository import MetricQdrantRepository
 
-#构建图
+
+def route_after_validate(state: DataAgentState):
+    # 如果存在错误
+    if state.get("error"):
+        # 检查是否已达到最大重试次数
+        if state.get("retry_count", 0) >= 3:
+            return "execute_sql"
+        return "correct_sql"  # 未达上限，去修正
+
+    # 没有错误，去执行
+    return "execute_sql"
+
+
+# 构建图
+
+
 grap_builder = StateGraph(state_schema=DataAgentState,
                           context_schema=DataAgentContext)
-#添加节点
 # 添加节点
-grap_builder.add_node("add_extra_context",add_extra_context)
-grap_builder.add_node("correct_sql",correct_sql)
-grap_builder.add_node("execute_sql",execute_sql)
-grap_builder.add_node("extract_keywords",extract_keywords)
-grap_builder.add_node("filter_metric",filter_metric)
-grap_builder.add_node("filter_table",filter_table)
-grap_builder.add_node("generate_sql",generate_sql)
-grap_builder.add_node("merge_retrieved_info",merge_retrieved_info)
-grap_builder.add_node("recall_column",recall_column)
-grap_builder.add_node("recall_metric",recall_metric)
-grap_builder.add_node("recall_value",recall_value)
-grap_builder.add_node("validate_sql",validate_sql)
+# 添加节点
+grap_builder.add_node("add_extra_context", add_extra_context)
+grap_builder.add_node("correct_sql", correct_sql)
+grap_builder.add_node("execute_sql", execute_sql)
+grap_builder.add_node("extract_keywords", extract_keywords)
+grap_builder.add_node("filter_metric", filter_metric)
+grap_builder.add_node("filter_table", filter_table)
+grap_builder.add_node("generate_sql", generate_sql)
+grap_builder.add_node("merge_retrieved_info", merge_retrieved_info)
+grap_builder.add_node("recall_column", recall_column)
+grap_builder.add_node("recall_metric", recall_metric)
+grap_builder.add_node("recall_value", recall_value)
+grap_builder.add_node("validate_sql", validate_sql)
+
+
+grap_builder.add_node("result_formatter", result_formatter)
+
+
 
 # 添加边
 
-grap_builder.add_edge(START,"extract_keywords")
-grap_builder.add_edge("extract_keywords","recall_column")
-grap_builder.add_edge("extract_keywords","recall_metric")
-grap_builder.add_edge("extract_keywords","recall_value")
-grap_builder.add_edge("recall_column","merge_retrieved_info")
-grap_builder.add_edge("recall_metric","merge_retrieved_info")
-grap_builder.add_edge("recall_value","merge_retrieved_info")
-grap_builder.add_edge("merge_retrieved_info","filter_table")
-grap_builder.add_edge("merge_retrieved_info","filter_metric")
-grap_builder.add_edge("filter_table","add_extra_context")
-grap_builder.add_edge("filter_metric","add_extra_context")
-grap_builder.add_edge("add_extra_context","generate_sql")
-grap_builder.add_edge("generate_sql","validate_sql")
+grap_builder.add_edge(START, "extract_keywords")
+grap_builder.add_edge("extract_keywords", "recall_column")
+grap_builder.add_edge("extract_keywords", "recall_metric")
+grap_builder.add_edge("extract_keywords", "recall_value")
+grap_builder.add_edge("recall_column", "merge_retrieved_info")
+grap_builder.add_edge("recall_metric", "merge_retrieved_info")
+grap_builder.add_edge("recall_value", "merge_retrieved_info")
+grap_builder.add_edge("merge_retrieved_info", "filter_table")
+grap_builder.add_edge("merge_retrieved_info", "filter_metric")
+grap_builder.add_edge("filter_table", "add_extra_context")
+grap_builder.add_edge("filter_metric", "add_extra_context")
+grap_builder.add_edge("add_extra_context", "generate_sql")
+grap_builder.add_edge("generate_sql", "validate_sql")
 
-# 添加条件节点
+
+
 grap_builder.add_conditional_edges(
     "validate_sql",
-    lambda state: "execute_sql" if not state.get("error") else "correct_sql",
-
-    {"correct_sql":"correct_sql","execute_sql":"execute_sql"}
-
+    route_after_validate,
+    {
+        "correct_sql": "correct_sql",
+        "execute_sql": "execute_sql"
+        # "end": END
+    }
 )
 
-grap_builder.add_edge("correct_sql","execute_sql")
-grap_builder.add_edge("execute_sql",END)
+grap_builder.add_edge("correct_sql", "validate_sql")
+
+grap_builder.add_edge("execute_sql", "result_formatter")
+
+grap_builder.add_edge("result_formatter", END)
 
 # 编译图
-graph= grap_builder.compile()
+graph = grap_builder.compile()
 
-# print(graph.get_graph().print_ascii())
-
+print(graph.get_graph().print_ascii())
 
 
 if __name__ == '__main__':
@@ -92,14 +117,13 @@ if __name__ == '__main__':
         meta_mysql_client_manager.init()
         dw_mysql_client_manager.init()
 
-        state = DataAgentState(query="统计华北地区销售总额")
+        state = DataAgentState(query="查询2025年华北的成交总额")
         metric_qdrant_repository = MetricQdrantRepository(qdrant_client_manager.client)
         async with meta_mysql_client_manager.session_factory() as meta_session, dw_mysql_client_manager.session_factory() as dw_session:
-
             value_es_repository = ValueEsRepository(es_client_manager.client)
             meta_mysql_repository = MetaMysqlRepository(meta_session)
             dw_mysql_repository = DwMysqlRepository(dw_session)
-            context=DataAgentContext(
+            context = DataAgentContext(
                 embedding_client=embedding_client_manager.client,
                 column_qdrant_repository=ColumnQdrantRepository(qdrant_client_manager.client),
                 metric_qdrant_repository=metric_qdrant_repository,
@@ -108,8 +132,7 @@ if __name__ == '__main__':
                 dw_mysql_repository=dw_mysql_repository
             )
 
-
-            async for chunk in graph.astream(input=state,context=context,stream_mode="custom"):
+            async for chunk in graph.astream(input=state, context=context, stream_mode="custom"):
                 print(chunk)
 
             # 释放资源
@@ -120,10 +143,3 @@ if __name__ == '__main__':
 
 
     asyncio.run(test())
-
-
-
-
-
-
-

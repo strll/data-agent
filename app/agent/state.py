@@ -51,3 +51,9 @@ class DataAgentState(TypedDict, total=False):
     date_info: DateInfoState
     db_info: DBInfoState
     sql:str
+    error_sql:str
+    sql_history:list[str]
+    error_history:list[str]
+    retry_count: int
+
+    result:str

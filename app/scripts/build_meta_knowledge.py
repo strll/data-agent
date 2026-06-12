@@ -13,7 +13,7 @@ from app.repossitories.mysql.dw_mysql_repository import DwMysqlRepository
 from app.repossitories.mysql.meta_mysql_repository import MetaMysqlRepository
 from app.repossitories.qdrant.column_qdrant_repository import ColumnQdrantRepository
 from app.repossitories.qdrant.metric_qdrant_repository import MetricQdrantRepository
-from app.service.meta_konwledge_service import MetaKnowledgeService
+from app.services.meta_konwledge_service import MetaKnowledgeService
 
 
 async def build(file_path: Path):
